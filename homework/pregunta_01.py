@@ -5,6 +5,9 @@
 Escriba el codigo que ejecute la accion solicitada en cada pregunta.
 """
 
+import os
+import zipfile
+import pandas as pd
 
 def pregunta_01():
     """
@@ -71,3 +74,37 @@ def pregunta_01():
 
 
     """
+    # Descomprimir el archivo
+    zPath = "files/input.zip"
+    extractPath = "files"
+    
+    if os.path.exists(zPath):
+        with zipfile.ZipFile(zPath, 'r') as zip_ref:
+            zip_ref.extractall(extractPath)
+    
+    # Crear carpeta output si no existe
+    output_path = "files/output"
+    os.makedirs(output_path, exist_ok=True)
+    
+    # Procesar datasets
+    for dataset_type in ["train", "test"]:
+        data = []
+        dataset_path = f"files/input/{dataset_type}"
+        
+        # Iterar sobre cada categoría (negative, positive, neutral)
+        for category in os.listdir(dataset_path):
+            category_path = os.path.join(dataset_path, category)
+            
+            if os.path.isdir(category_path):
+                # Leer todos los archivos .txt en la categoría
+                for filename in os.listdir(category_path):
+                    if filename.endswith(".txt"):
+                        file_path = os.path.join(category_path, filename)
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            phrase = f.read().strip()
+                            data.append({"phrase": phrase, "target": category})
+        
+        # Crear DataFrame y guardarlo como CSV
+        df = pd.DataFrame(data)
+        output_file = f"files/output/{dataset_type}_dataset.csv"
+        df.to_csv(output_file, index=False)
